@@ -1,12 +1,10 @@
-from datetime import datetime
-
 import cv2
 import torch.cuda
 from ultralytics import YOLO
 from collections import deque
 import numpy as np
 
-# Load YOLOv11 model and move to GPU (CUDA)
+# Load YOLOv8 model and move to GPU (CUDA)
 model = YOLO("yolo11x.pt")  # Ensure you have the correct model file
 
 if torch.cuda.is_available():
@@ -17,11 +15,12 @@ if torch.cuda.is_available():
 animal_classes = ["cat", "dog", "horse", "cow", "sheep", "elephant", "bear", "zebra"]
 
 # Open video file
-cap = cv2.VideoCapture('animals_zebras.mp4')  # Replace with your file path
+video_path = "videos\single_horse.mp4"  # Replace with the path to your video file
+cap = cv2.VideoCapture(video_path)
 
 # Check if video file is opened successfully
 if not cap.isOpened():
-    print("Error: Could not open video file.")
+    print(f"Error: Could not open video file {video_path}.")
     exit()
 
 # Get video properties
@@ -30,7 +29,7 @@ frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = cap.get(cv2.CAP_PROP_FPS)
 
 # Define the vertical line for counting crossings
-line_x = 1000
+line_x = 380
 crossing_count = 0
 
 # Object tracking storage
@@ -39,22 +38,15 @@ object_trackers = {}  # Dictionary storing individual object trackers
 track_length = 30  # Maximum tracking trail length
 inactive_frames_threshold = 10  # Threshold for removing inactive objects
 
-
 # Function to calculate Euclidean distance
 def calculate_distance(center1, center2):
     return np.sqrt((center1[0] - center2[0]) ** 2 + (center1[1] - center2[1]) ** 2)
-
-
-# Set up the video writer to save the processed video
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-output_file = f'output/detection_{timestamp}.mp4'
-fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Use XVID codec for .mp4 files
-out = cv2.VideoWriter(output_file, fourcc, fps, (frame_width, frame_height))
 
 # Process video frames
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
+        print("End of video file reached.")
         break  # Exit loop if video feed ends
 
     # Perform object detection using YOLO
@@ -142,11 +134,8 @@ while cap.isOpened():
     cv2.putText(frame, f"Crossings: {crossing_count}", (50, 50),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-    # Write the processed frame to output video file
-    out.write(frame)
-
-    # Show video with detections (Optional)
-    # cv2.imshow("Animal Detection & Tracking", frame)
+    # Show video with detections
+    cv2.imshow("Animal Detection & Tracking", frame)
 
     # Exit if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -154,5 +143,4 @@ while cap.isOpened():
 
 # Cleanup
 cap.release()
-out.release()
 cv2.destroyAllWindows()
