@@ -15,7 +15,7 @@ if torch.cuda.is_available():
 animal_classes = ["cat", "dog", "horse", "cow", "sheep", "elephant", "bear", "zebra"]
 
 # Open video file
-video_path = "animals3_compressed_cropped_30.mp4"  # Replace with the path to your video file
+video_path = "videos\single_horse.mp4"  # Replace with the path to your video file
 cap = cv2.VideoCapture(video_path)
 
 # Check if video file is opened successfully
@@ -29,7 +29,7 @@ frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = cap.get(cv2.CAP_PROP_FPS)
 
 # Define the vertical line for counting crossings
-line_x = 300
+line_x = 380
 crossing_count = 0
 
 # Object tracking storage
