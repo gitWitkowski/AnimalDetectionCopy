@@ -7,7 +7,7 @@ This project utilizes **YOLOv11** for real-time animal detection and tracking us
 ### **1. Install Dependencies**
 Ensure you have Python installed, then install the required dependencies:
 ```sh
-pip install -r requirements.txt
+pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu124
 ```
 
 ### **2. Check CUDA Availability**
@@ -20,11 +20,15 @@ python -c "import torch; print(torch.cuda.is_available())"
 If the output is `True`, CUDA is available.
 
 ## **Running the Program**
-To start the detection and tracking program, run:
+To start the detection and tracking program for live camera, run:
 ```sh
-python main.py
+python live_tracking.py
 ```
-Ensure you have a connected webcam or modify the script to use a video file instead.
+
+To start the detection and tracking program for live camera, run:
+```sh
+python file_tracking.py
+```
 
 ## **Features**
 - **Real-time object detection** using YOLOv11
