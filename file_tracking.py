@@ -3,6 +3,12 @@ import torch.cuda
 from ultralytics import YOLO
 from collections import deque
 import numpy as np
+import logging
+
+#Removes Yolo logs from the terminal - logs only errores(optional)
+logging.getLogger("ultralytics").setLevel(logging.ERROR)
+
+print("Press q - quit, p - pause frame, n - go to next frame(when paussed), b - go to previous frame(when paussed)")
 
 # Load YOLOv8 model and move to GPU (CUDA)
 model = YOLO("yolo11x.pt")  # Ensure you have the correct model file
@@ -14,7 +20,7 @@ if torch.cuda.is_available():
 # Define animal classes for detection
 animal_classes = ["cat", "dog", "horse", "cow", "sheep", "elephant", "bear", "zebra"]
 
-# Open video file
+# Open video file (can be any format OpenCV supports .mp4 .avi .mov .mkv .wmv .flv .webm) 
 video_path = "videos\single_horse.mp4"  # Replace with the path to your video file
 cap = cv2.VideoCapture(video_path)
 
@@ -27,9 +33,10 @@ if not cap.isOpened():
 frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = cap.get(cv2.CAP_PROP_FPS)
+total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
 # Define the vertical line for counting crossings
-line_x = 380
+line_x = 300
 crossing_count = 0
 
 # Object tracking storage
@@ -42,12 +49,25 @@ inactive_frames_threshold = 10  # Threshold for removing inactive objects
 def calculate_distance(center1, center2):
     return np.sqrt((center1[0] - center2[0]) ** 2 + (center1[1] - center2[1]) ** 2)
 
+
+# Set up the video writer to save the processed video
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+output_file = f'output/detection_{timestamp}.mp4'
+fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Use XVID codec for .mp4 files
+out = cv2.VideoWriter(output_file, fourcc, fps, (frame_width, frame_height))
+
+# Initialize frame navigation state
+paused = False
+current_frame = 0
+
 # Process video frames
 while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        print("End of video file reached.")
-        break  # Exit loop if video feed ends
+    if not paused:
+        ret, frame = cap.read()
+        if not ret:
+            print("End of video file readched.")
+            break  # Exit loop if video ends or error occurs
+        current_frame = int(cap.get(cv2.CAP_PROP_POS_FRAMES))  # Update current frame
 
     # Perform object detection using YOLO
     results = model(frame, iou=0.5)  # Adjust IoU threshold to reduce duplicate detections
@@ -134,13 +154,32 @@ while cap.isOpened():
     cv2.putText(frame, f"Crossings: {crossing_count}", (50, 50),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-    # Show video with detections
+    # Write the processed frame to output video file
+    out.write(frame)
+
+    # Show video with detections (Optional)
     cv2.imshow("Animal Detection & Tracking", frame)
 
-    # Exit if 'q' is pressed
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    # Handle key events for pause, resume, and frame navigation
+    key = cv2.waitKey(0 if paused else 1) & 0xFF
+    if key == ord('q'):  # Exit if 'q' is pressed
+        print("Exiting")
         break
-
+    elif key == ord('p'):  # Toggle pause
+        paused = not paused
+        print("Paused" if paused else "Resumed")
+    elif key == ord('n') and paused:  # Go to next frame when paused
+        if current_frame < total_frames - 1:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame + 1)
+            ret, frame = cap.read()
+            current_frame += 1
+        print("Next Frame:", current_frame)
+    elif key == ord('b') and paused:  # Go to previous frame when paused
+        if current_frame > 1:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame - 1)
+            ret, frame = cap.read()
+            current_frame -= 1
+        print("Previous Frame:", current_frame)
 # Cleanup
 cap.release()
 cv2.destroyAllWindows()
