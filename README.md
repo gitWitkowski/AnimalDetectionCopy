@@ -4,6 +4,20 @@
 This project utilizes **YOLOv11** for real-time animal detection and tracking using a webcam feed. The system detects predefined animal classes and tracks their movement, counting crossings over a defined vertical line.
 
 ## **Installation**
+### **0. Create Virtual Environment (optional)**
+Create a virtual environment:
+```sh
+python -m venv myenv
+```
+Activate it
+On Windows:
+```sh
+myenv\Scripts\activate
+```
+On Mac/Linux:
+```sh
+source myenv/bin/activate
+```
 ### **1. Install Dependencies**
 Ensure you have Python installed, then install the required dependencies:
 ```sh
