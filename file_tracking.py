@@ -53,8 +53,8 @@ def calculate_distance(center1, center2):
 
 # Set up the video writer to save the processed video
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-output_file = f'output/detection_{timestamp}.mp4'
-fourcc = cv2.VideoWriter_fourcc(*'XVID')  # Use XVID codec for .mp4 files
+output_file = f'output/detection_{timestamp}.avi'
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter(output_file, fourcc, fps, (frame_width, frame_height))
 
 # Initialize frame navigation state
